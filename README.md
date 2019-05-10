@@ -7,3 +7,4 @@ How to use:
 - git clone git@github.com:ReVanTis/xd75_qmk.git keyboards/xd75/keymaps/vaninc
 - run make xd75:vaninc to verify
 - run make xd75:vaninc:dfu to flash
+- To exclude this keymap from qmk_firmware locally add keyboards/xd75/keymaps/vaninc/* to qmk_firmware/.git/info/exclude
