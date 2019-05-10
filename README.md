@@ -1,2 +1,1 @@
-# xd75_qmk
-My QMK keymap for XD75.
+# Keymap for xd75 for ReVanTis based on Subatomic
