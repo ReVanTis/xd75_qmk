@@ -71,7 +71,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   { KC_TAB,          KC_Q,     KC_W,    KC_E,    KC_R,           KC_T,    KC_Y,    KC_U,           KC_I,    KC_O,    KC_P,    KC_LBRC, KC_RBRC,          KC_INS , KC_DEL   },
   {TD(TD_ESC_CAPS),  KC_A,     KC_S,    KC_D,    KC_F,           KC_G,    KC_H,    KC_J,           KC_K,    KC_L,    KC_SCLN, KC_QUOT, KC_ENT,           KC_ENT , KC_SFTENT},
   { KC_LSFT,         KC_BSPC,  KC_Z,    KC_X,    KC_C,           KC_V,    KC_B,    KC_N,           KC_M,    KC_COMM, KC_DOT,  KC_SLSH, TD(TD_PGUP_HOME), KC_UP,   TD(TD_PGDN_END)  },
-  { KC_LCTL,         BACKLIT,  KC_LGUI, KC_LALT, MO(_RS),        KC_SPC,  KC_SPC,  MO(_LW),        KC_RALT, KC_RGUI, MO(_FN), KC_RCTL, KC_LEFT,          KC_DOWN, KC_RGHT  },
+  { KC_LCTL,         KC_LCTL,  KC_LGUI, KC_LALT, MO(_RS),        KC_SPC,  KC_SPC,  MO(_LW),        KC_RALT, KC_RGUI, MO(_FN), KC_RCTL, KC_LEFT,          KC_DOWN, KC_RGHT  },
  },
 
 /* LOWERED
@@ -136,7 +136,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   { KC_NLCK, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,            KC_F12,  _______, ___T___  },
   { KC_SLCK, KC_F13,  KC_F14,  KC_F15,  KC_F16,  KC_F17,  KC_F18,  KC_F19,  KC_F20,  KC_F21,  KC_F22,  KC_F23,            KC_F24,  KC_PAUS, KC_PSCR  },
   { KC_CAPS, KC_BTN5, KC_BTN4, KC_BTN3, KC_BTN2, KC_ACL0, KC_ACL2, KC_MNXT, KC_VOLD, KC_VOLU, KC_MPLY, MAGIC_TOGGLE_NKRO, ___T___, ___T___, ___T___  },
-  { RGB_TOG, RGB_MOD, RGB_HUI, RGB_HUD, RGB_SAI, RGB_SAD, RGB_VAI, RGB_VAD, _______, _______, BL_TOGG, TYPEBLINK,         KC_WH_U, KC_MS_U, KC_WH_D  },
+  { RGB_TOG, RGB_MOD, RGB_HUI, RGB_HUD, RGB_SAI, RGB_SAD, RGB_VAI, RGB_VAD, _______, _______, BL_STEP, TYPEBLINK,         KC_WH_U, KC_MS_U, KC_WH_D  },
   { _______, RESET  , _______, _______, _______, KC_BTN1, KC_BTN2, _______, _______, _______, _______, _______,           KC_MS_L, KC_MS_D, KC_MS_R  },
  },
  
@@ -223,6 +223,7 @@ void set_rgblight_by_layer(uint32_t layer)
 
 bool process_record_user(uint16_t keycode, keyrecord_t * record) {
     switch (keycode) {
+/*
     // Hold BACKLIT = Left Ctrl
     case BACKLIT:
         if (record -> event.pressed) {
@@ -230,7 +231,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t * record) {
             mod_pressed++;
             rgblight_setrgb(COLOR_MOD);
 #ifdef BACKLIGHT_ENABLE
-            backlight_step();
+//            backlight_step();
 #endif
         } else {
             unregister_code(KC_LCTL);
@@ -240,6 +241,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t * record) {
         }
         return false;
         break;
+*/
     //Ctrl/Shift/Alt/Win/Enter keys will change underglow to COLOR_MOD
     case KC_LSFT:
     case KC_LCTL:
