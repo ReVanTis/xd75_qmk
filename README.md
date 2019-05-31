@@ -1,6 +1,6 @@
-# Keymap for xd75 for ReVanTis based on Subatomic
+# QMK Keymap for ReVanTis' XD75
 
-How to use:
+How to setup:
 
 - Setup qmk build environment.
 - cd to qmk_firmware root.
@@ -8,3 +8,9 @@ How to use:
 - run make xd75:vaninc to verify
 - run make xd75:vaninc:dfu to flash
 - To exclude this keymap from qmk_firmware locally add keyboards/xd75/keymaps/vaninc/* to qmk_firmware/.git/info/exclude
+
+
+Or automatically:
+
+- cd to qmk_firmware root.
+- execute "curl -s https://raw.githubusercontent.com/ReVanTis/xd75_qmk/master/scripts/setup.sh | bash"
