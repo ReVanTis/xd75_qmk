@@ -17,5 +17,9 @@ By Pin:
 |- |0           |1           |2           |3           |4           |5           |6           |7           |
 |:-|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|:-----------|
 |B |COL         |COL         |CAPSLOCK_LED|COL         |COL         |COL         |COL         |COL         |
+|C |X           |X           |X           |X           |X           |X           |COL         |COL         |
 |D |ROW         |ROW         |ROW         |ROW         |COL         |ROW         |COL         |COL         |
-|F |COL         |COL         |-           |-           |GP103_LED   |KEYCAPS_LED |RGB_DI_PIN  |GP100_LED   |
+|E |X           |X           |HWB         |X           |X           |X           |COL         |X           |
+|F |COL         |COL         |X           |X           |GP103_LED   |KEYCAPS_LED |RGB_DI_PIN  |GP100_LED   |
+
+[32u4 Pin Mapping](https://www.arduino.cc/en/Hacking/PinMapping32u4)
