@@ -15,7 +15,14 @@
  */
 
 #include QMK_KEYBOARD_H
-#include "password.h"
+
+#if __has_include("password.h")
+#  include "password.h"
+#endif
+
+#ifndef PASSWORD
+#define PASSWORD "Made by ReVanTis"
+#endif
 
 // Fillers to make layering more clear
 #define ___T___ KC_TRNS
