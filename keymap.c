@@ -16,6 +16,9 @@
 
 #include QMK_KEYBOARD_H
 
+#include "raw_hid.h"
+#include "raw.h"
+
 #if __has_include("password.h")
 #  include "password.h"
 #endif
@@ -38,6 +41,15 @@
 #define _FN 3
 #define _AD 4
 
+// Raw Report
+#define ENABLE_REPORT() \
+    key_event_report = true; \
+    gp100_led_on();
+
+#define DISABLE_REPORT()\
+    key_event_report = false;\
+    gp100_led_off();
+
 // Custom Keycode Declarations
 enum {
     BACKLIT = SAFE_RANGE,
@@ -45,6 +57,7 @@ enum {
     TYPEBLINK,
     PASSWD,
     PINCD,
+    REPTOG,//Toggle usb raw report to PC side.
 };
 
 // Tap Dance Declarations
@@ -173,7 +186,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   { PINCD   , _______, _______, _______, _______, _______, _______, KC_KP_4, KC_KP_5, KC_KP_6,   KC_KP_MINUS,    KC_KP_ENTER, _______, _______, _______  },
   { _______ , KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,   KC_F6  , KC_KP_1, KC_KP_2, KC_KP_3,   KC_KP_ASTERISK, KC_KP_ENTER, ___T___, ___T___, ___T___  },
   { _______ , KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  KC_F12 , KC_KP_0, KC_NLCK, KC_KP_DOT, KC_KP_SLASH,    KC_KP_ENTER, KC_HOME, _______, KC_END   },
-  { _______ , _______, _______, _______, _______, _______, KC_ENT , _______, _______, _______,   _______,        _______,     _______, _______, _______  },
+  { REPTOG  , _______, _______, _______, _______, _______, KC_ENT , _______, _______, _______,   _______,        _______,     _______, _______, _______  },
  },
 };
 
@@ -236,6 +249,21 @@ void set_rgblight_by_layer(uint32_t layer)
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t * record) {
+    
+#ifdef RAW_ENABLE
+    if(key_event_report && record -> event.pressed) // only sent when pressed
+    {
+        keypos_t key = record->event.key;
+        uint8_t *report = malloc(sizeof(uint8_t) * RAW_EPSIZE);
+        report[0] = RAW_COMMAND_REPORT_KEY_EVENT;
+        report[1] = 0x02;
+        report[2] = key.col;
+        report[3] = key.row;
+        raw_hid_send(report,RAW_EPSIZE);
+        free(report);
+    }
+#endif
+
     switch (keycode) {
     case PASSWD:
         if (record -> event.pressed) {}
@@ -249,6 +277,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t * record) {
         else
         {
             SEND_STRING(PINCODE);
+        }
+        break;
+    case REPTOG:
+        if (record -> event.pressed) {}
+        else
+        {
+            if(!key_event_report) {ENABLE_REPORT()}
+            else {DISABLE_REPORT()}
         }
         break;
 /*
@@ -354,10 +390,8 @@ uint32_t layer_state_set_user(uint32_t state) {
     case _LW:
     case _FN:
     case _AD:
-        gp100_led_on();
         break;
     default:
-        gp100_led_off();
         break;
     }
     return state;
@@ -368,3 +402,52 @@ qk_tap_dance_action_t tap_dance_actions[] = {
     [TD_PGUP_HOME]  = ACTION_TAP_DANCE_DOUBLE(KC_PGUP, KC_HOME),
     [TD_PGDN_END]  = ACTION_TAP_DANCE_DOUBLE(KC_PGDN, KC_END)
 };
+
+
+
+#ifdef RAW_ENABLE
+void raw_hid_receive( uint8_t *data, uint8_t length )
+{
+    uint8_t *command_id = &(data[0]);
+    uint8_t *command_data = &(data[1]);
+    switch ( *command_id )
+    {
+        case RAW_COMMAND_GET_PROTOCOL_VERSION: //0x01(id) 0x00(payload_length)
+        {
+            *command_id =RAW_COMMAND_GET_PROTOCOL_VERSION;
+            command_data[0]=0x01;
+            command_data[1]=PROTOCOL_VERSION;
+            break;
+        }
+        case RAW_COMMAND_ENABLE_KEY_EVENT_REPORT: //0x02 0x00
+        {
+            ENABLE_REPORT();
+            
+            *command_id=RAW_COMMAND_ENABLE_KEY_EVENT_REPORT;
+            command_data[0]=0x01;
+            command_data[1]=SUCCESS;
+            break;
+        }
+        case RAW_COMMAND_DISABLE_KEY_EVENT_REPORT: //0x03 0x00
+        {
+            DISABLE_REPORT();
+            
+            *command_id=RAW_COMMAND_DISABLE_KEY_EVENT_REPORT;
+            command_data[0]=0x01;
+            command_data[1]=SUCCESS;
+            break;
+        }
+        default: //0xff ...
+        {
+            *command_id=RAW_COMMAND_UNDEFINED;
+            command_data[0]=0x01;
+            command_data[1]=FAILED;
+            break;
+        }
+    }
+    raw_hid_send(data,length);
+
+}
+
+#endif
+
