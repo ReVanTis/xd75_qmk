@@ -41,15 +41,6 @@
 #define _FN 3
 #define _AD 4
 
-// Raw Report
-#define ENABLE_REPORT() \
-    key_event_report = true; \
-    gp100_led_on();
-
-#define DISABLE_REPORT()\
-    key_event_report = false;\
-    gp100_led_off();
-
 // Custom Keycode Declarations
 enum {
     BACKLIT = SAFE_RANGE,
@@ -57,7 +48,8 @@ enum {
     TYPEBLINK,
     PASSWD,
     PINCD,
-    REPTOG,//Toggle usb raw report to PC side.
+    //Toggle usb raw report to PC side
+    REPTOG,
 };
 
 // Tap Dance Declarations
@@ -203,6 +195,9 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 int mod_pressed = 0;
 int type_pressed = 0;
+bool GP100_status=false;
+static uint16_t hid_timer = 0;
+bool hid_triggered=false;
 
 extern rgblight_config_t rgblight_config;
 
@@ -210,6 +205,10 @@ extern rgblight_config_t rgblight_config;
 extern backlight_config_t backlight_config;
 int origin_level = 0;
 #endif
+
+#define gp100_led_tog() \
+if(GP100_status) gp100_led_off(); else gp100_led_on(); GP100_status=!GP100_status;
+
 
 void led_set_user(uint8_t usb_led) {
     if (usb_led & (1 << USB_LED_CAPS_LOCK)) {
@@ -220,7 +219,7 @@ void led_set_user(uint8_t usb_led) {
 }
 
 void keyboard_post_init_user() {
-    gp100_led_off();
+    //gp100_led_off();
     user_config.raw = eeconfig_read_user();
 }
 
@@ -283,29 +282,9 @@ bool process_record_user(uint16_t keycode, keyrecord_t * record) {
         if (record -> event.pressed) {}
         else
         {
-            if(!key_event_report) {ENABLE_REPORT()}
-            else {DISABLE_REPORT()}
+            key_event_report = !key_event_report;
         }
         break;
-/*
-    // Hold BACKLIT = Left Ctrl
-    case BACKLIT:
-        if (record -> event.pressed) {
-            register_code(KC_LCTL);
-            mod_pressed++;
-            rgblight_setrgb(COLOR_MOD);
-#ifdef BACKLIGHT_ENABLE
-//            backlight_step();
-#endif
-        } else {
-            unregister_code(KC_LCTL);
-            mod_pressed--;
-            if (mod_pressed == 0)
-                set_rgblight_by_layer(layer_state);
-        }
-        return false;
-        break;
-*/
     //Ctrl/Shift/Alt/Win/Enter keys will change underglow to COLOR_MOD
     case KC_LSFT:
     case KC_LCTL:
@@ -390,8 +369,14 @@ uint32_t layer_state_set_user(uint32_t state) {
     case _LW:
     case _FN:
     case _AD:
+        if(!hid_triggered)
+        {gp100_led_on();
+        GP100_status=true;}
         break;
     default:
+        if(!hid_triggered)
+        {gp100_led_off();
+        GP100_status=false;}
         break;
     }
     return state;
@@ -406,8 +391,16 @@ qk_tap_dance_action_t tap_dance_actions[] = {
 
 
 #ifdef RAW_ENABLE
+
 void raw_hid_receive( uint8_t *data, uint8_t length )
 {
+    if(hid_triggered==false)
+    {
+        gp100_led_on();
+        GP100_status=true;
+        hid_timer = timer_read();
+        hid_triggered=true;
+    }
     uint8_t *command_id = &(data[0]);
     uint8_t *command_data = &(data[1]);
     switch ( *command_id )
@@ -421,8 +414,7 @@ void raw_hid_receive( uint8_t *data, uint8_t length )
         }
         case RAW_COMMAND_ENABLE_KEY_EVENT_REPORT: //0x02 0x00
         {
-            ENABLE_REPORT();
-            
+            key_event_report=true;
             *command_id=RAW_COMMAND_ENABLE_KEY_EVENT_REPORT;
             command_data[0]=0x01;
             command_data[1]=SUCCESS;
@@ -430,8 +422,7 @@ void raw_hid_receive( uint8_t *data, uint8_t length )
         }
         case RAW_COMMAND_DISABLE_KEY_EVENT_REPORT: //0x03 0x00
         {
-            DISABLE_REPORT();
-            
+            key_event_report=false;
             *command_id=RAW_COMMAND_DISABLE_KEY_EVENT_REPORT;
             command_data[0]=0x01;
             command_data[1]=SUCCESS;
@@ -446,7 +437,14 @@ void raw_hid_receive( uint8_t *data, uint8_t length )
         }
     }
     raw_hid_send(data,length);
+}
 
+void matrix_scan_user(void) {
+    if (hid_triggered && timer_elapsed(hid_timer) > 200) {
+        gp100_led_off();
+        GP100_status=false;
+        hid_triggered=false;
+  }
 }
 
 #endif
