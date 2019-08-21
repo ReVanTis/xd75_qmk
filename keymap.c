@@ -428,6 +428,11 @@ void raw_hid_receive( uint8_t *data, uint8_t length )
             command_data[1]=SUCCESS;
             break;
         }
+        case RAW_COMMAND_HEARTBEAT_PING:
+        {
+            // do nothing and return the original message.
+            break;
+        }
         default: //0xff ...
         {
             *command_id=RAW_COMMAND_UNDEFINED;
