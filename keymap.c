@@ -428,9 +428,25 @@ void raw_hid_receive( uint8_t *data, uint8_t length )
             command_data[1]=SUCCESS;
             break;
         }
-        case RAW_COMMAND_HEARTBEAT_PING:
+        case RAW_COMMAND_HEARTBEAT_PING: // 0x04 0x01 (heartbeat seq no.)
         {
             // do nothing and return the original message.
+            break;
+        }
+        case RAW_COMMAND_CHANGE_COLOR: // 0x05 0x03 0xRR 0xGG 0xBB
+        {
+            *command_id=RAW_COMMAND_CHANGE_COLOR;
+            if(command_data[0] != 3 )
+            {
+                command_data[0]=0x01;
+                command_data[1]=FAILED;
+            }
+            else
+            {
+                rgblight_sethsv(command_data[1], command_data[2], command_data[3]);
+                command_data[0]=0x04;
+                command_data[4]=SUCCESS;
+            }
             break;
         }
         default: //0xff ...
