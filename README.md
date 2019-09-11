@@ -14,3 +14,6 @@ Or automatically:
 
 - cd to qmk_firmware root.
 - execute "curl -s https://raw.githubusercontent.com/ReVanTis/xd75_qmk/master/scripts/setup.sh | bash"
+
+
+Hid commandline tool available for this keymap [here](https://github.com/ReVanTis/XD75RawHid).
