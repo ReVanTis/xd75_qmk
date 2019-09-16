@@ -197,7 +197,10 @@ int mod_pressed = 0;
 int type_pressed = 0;
 bool GP100_status=false;
 static uint16_t hid_timer = 0;
+static uint16_t boot_timer = 0;
 bool hid_triggered=false;
+static bool first_boot_up=false;
+static int boot_counter=0;
 
 extern rgblight_config_t rgblight_config;
 
@@ -221,6 +224,8 @@ void led_set_user(uint8_t usb_led) {
 void keyboard_post_init_user() {
     //gp100_led_off();
     user_config.raw = eeconfig_read_user();
+    first_boot_up=true;
+    boot_timer = timer_read();
 }
 
 void set_rgblight_by_layer(uint32_t layer)
@@ -461,6 +466,29 @@ void raw_hid_receive( uint8_t *data, uint8_t length )
 }
 
 void matrix_scan_user(void) {
+    if(first_boot_up)
+    {
+        if(timer_elapsed(boot_timer) > boot_counter * 100 + 100)
+        {
+            boot_counter += 1;
+            int boot_counter_mod = boot_counter%7;
+            switch(boot_counter_mod)
+            {
+                case 0: rgblight_setrgb(RGB_RED); break; 
+                case 1: rgblight_setrgb(RGB_ORANGE); break; 
+                case 2: rgblight_setrgb(RGB_YELLOW); break; 
+                case 3: rgblight_setrgb(RGB_GREEN); break; 
+                case 4: rgblight_setrgb(RGB_CYAN); break; 
+                case 5: rgblight_setrgb(RGB_BLUE); break; 
+                case 6: rgblight_setrgb(RGB_PURPLE); break; 
+            }
+            if( boot_counter > 21 )
+            {
+                rgblight_sethsv(COLOR_CUR);
+                first_boot_up=false;
+            }
+        }
+    }
     if (hid_triggered && timer_elapsed(hid_timer) > 200) {
         gp100_led_off();
         GP100_status=false;
